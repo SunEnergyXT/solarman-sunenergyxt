@@ -1,4 +1,4 @@
-# solarman-sunlit
+# solarman-sunenergyxt
 Modified Solarman integration for Home Assistant with register 53 support for active power regulation
 
 > **Important Notice**: This repository is a modified version of [davidrapan/ha-solarman](https://github.com/davidrapan/ha-solarman). The original code copyright belongs to the respective author. This modification is made solely to address specific device compatibility issues.
