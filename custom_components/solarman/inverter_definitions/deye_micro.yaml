@@ -722,6 +722,8 @@ parameters:
           min: 0
           max: 100
           step: 0.1
+          # 0% makes the microinverter stop and report "DC Bus2 Uneven Voltage"; 0.1% keeps it running with near-zero output
+          write_min: 0.1
         range:
           min: 0
           max: 10000

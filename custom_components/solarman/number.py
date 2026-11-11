@@ -43,6 +43,10 @@ class SolarmanNumberEntity(SolarmanWritableEntity, NumberEntity):
         if "offset" in sensor:
             self.offset = get_number(sensor["offset"])
 
+        # Lowest value actually written to the device; lower requests are raised to it instead of being rejected,
+        # so automations can keep sending values down to "min"
+        self.write_min = None
+
         if "configurable" in sensor and (configurable := sensor["configurable"]):
             if "mode" in configurable:
                 self._attr_mode = configurable["mode"]
@@ -52,6 +56,8 @@ class SolarmanNumberEntity(SolarmanWritableEntity, NumberEntity):
                 self._attr_native_max_value = configurable["max"]
             if "step" in configurable:
                 self._attr_native_step = configurable["step"]
+            if "write_min" in configurable:
+                self.write_min = get_number(configurable["write_min"])
 
         if not hasattr(self, "_attr_native_min_value") and not hasattr(self, "_attr_native_max_value") and "range" in sensor and (range := sensor["range"]):
             self._attr_native_min_value = range["min"]
@@ -62,7 +68,10 @@ class SolarmanNumberEntity(SolarmanWritableEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the setting."""
-        value_int = int(value if self.scale is None else value / self.scale)
+        if self.write_min is not None and value < self.write_min:
+            value = self.write_min
+        # Round instead of truncating, e.g. 20.4 / 0.01 = 2039.999... must be written as 2040
+        value_int = int(value) if self.scale is None else round(value / self.scale)
         if self.offset is not None:
             value_int += self.offset
         await self.write(value_int if value_int < 0xFFFF else 0xFFFF, get_number(value))
